@@ -1,0 +1,54 @@
+pipeline {
+    agent any
+
+    environment {
+        BUCKET_NAME = 'demotest'
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                git branch: 'main', url: 'https://github.com/sachdath5/html-test.git'
+            }
+        }
+
+        stage('Check Bucket Exists') {
+            steps {
+                script {
+                    def bucketExists = sh(
+                        script: "aws s3 ls s3://${BUCKET_NAME}",
+                        returnStatus: true
+                    ) == 0
+
+                    env.BUCKET_EXISTS = bucketExists.toString()
+                }
+            }
+        }
+
+        stage('Create Bucket') {
+            when {
+                expression {
+                    return env.BUCKET_EXISTS == 'false'
+                }
+            }
+            steps {
+                sh 'aws s3 mb s3://${BUCKET_NAME}'
+            }
+        }
+
+        stage('Sync Bucket') {
+            steps {
+                sh 'aws s3 sync . s3://${BUCKET_NAME}/ --exclude ".git/*"'
+            }
+        }
+    }
+
+    post {
+        success {
+            echo '✅ Upload successful!'
+        }
+        failure {
+            echo '❌ Pipeline failed!'
+        }
+    }
+}
