@@ -1,0 +1,36 @@
+pipeline {
+    agent any
+
+    environment {
+        BUCKET_NAME = 'demotest1233456764345'
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                git branch: 'main', url: 'https://github.com/sachdath5/html-test.git'
+            }
+        }
+
+        stage('Create Bucket') {
+            steps {
+                sh 'aws s3 mb s3://${BUCKET_NAME}'
+            }
+        }
+
+        stage('Sync Bucket') {
+            steps {
+                sh 'aws s3 sync . s3://${BUCKET_NAME}/'
+            }
+        }
+    }
+
+    post {
+        success {
+            echo '✅ Upload successful!'
+        }
+        failure {
+            echo '❌ Pipeline failed!'
+        }
+    }
+}
