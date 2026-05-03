@@ -1,0 +1,41 @@
+pipeline {
+    agent any
+
+    tools {
+        nodejs 'npm'   // Name configured in Jenkins (Manage Jenkins → Global Tool Configuration)
+    }
+
+    environment {
+        APP_ENV = 'test'
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                git branch: 'main',url: 'https://github.com/mantu0tech/weather_app_node_js.git'
+            }
+        }
+
+        stage('Install Dependencies') {
+            steps {
+                echo 'Hello World'
+                sh 'npm install'
+            }
+        }
+
+        stage('start') {
+            steps {
+                sh 'npm run start'
+            }
+        }
+
+    }
+    post {
+        success {
+            echo '✅ Build successful!'
+        }
+        failure {
+            echo '❌ Build failed!'
+        }
+    }
+}
